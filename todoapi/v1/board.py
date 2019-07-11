@@ -11,7 +11,7 @@ from flask import (
 
 bp = Blueprint('board', __name__, url_prefix='/v1/board')
 
-# creating without int:board_id
+
 @bp.route('/<int:board_id>', methods=('PUT',))
 @bp.route('/', methods=('POST',))
 @valid_token_only
@@ -19,7 +19,7 @@ def create_or_update(board_id=None):
 	db = get_db()
 
 	name = request.form.get('name', None)
-	color = request.form.get('color', '#FFF')
+	color = request.form.get('color', None)
 	error = validate_board(name, color)
 
 	if error:
@@ -41,6 +41,8 @@ def create_or_update(board_id=None):
 	elif request.method == 'PUT':
 		if board_id is None: 
 			abort(404)
+		if color is None:
+			color = db.execute('SELECT color FROM board WHERE id = ?', (board_id,)).fetchone()['color']
 		db.execute(
 			'UPDATE board SET name = ?, color = ? WHERE id = ?',
 			(name, color, board_id)
