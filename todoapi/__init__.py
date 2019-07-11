@@ -15,9 +15,11 @@ def create_app():
 
 	db.register_init_db(app)
 
-	from todoapi.v1 import auth, board
+	from todoapi.v1 import auth, board, lists, task
 	app.register_blueprint(auth.bp)
 	app.register_blueprint(board.bp)
+	app.register_blueprint(lists.bp)
+	app.register_blueprint(task.bp)
 
 
 	return app

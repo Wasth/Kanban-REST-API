@@ -74,3 +74,16 @@ def validate_board(name, color):
 		}
 
 	return error
+
+def validate_list(name, sort):
+	error = None
+
+	if not name:
+		error = {
+			'name': 'Name of list cannot be blank'
+		}
+	elif sort and not sort.isdigit():
+		error = {
+			'sort': 'Sort must be integer'
+		}
+	return error
