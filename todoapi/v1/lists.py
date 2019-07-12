@@ -40,7 +40,6 @@ def create_or_update(list_id=None, board_id=None):
 	elif request.method == 'PUT':
 		if not is_author(list_id, g.user['id']):
 			abort(403)
-		name
 		if sort is None:
 			sort = db.execute('SELECT sort FROM list WHERE id = ?', (list_id,)).fetchone()['sort']
 		db.execute(
