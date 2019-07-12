@@ -4,6 +4,8 @@ from .auth import valid_token_only
 from todoapi.db import get_db
 from todoapi.utils import validate_list
 
+from todoapi.v1 import board
+
 from flask import Blueprint, g, request, abort 
 
 bp = Blueprint('list', __name__, url_prefix='/v1/list')
@@ -15,7 +17,7 @@ def create_or_update(list_id=None, board_id=None):
 	db = get_db()
 
 	name = request.form.get('name', None)
-	sort = request.form.get('sort', 0)
+	sort = request.form.get('sort', None)
 	error = validate_list(name, sort)
 
 	if error:
@@ -29,15 +31,18 @@ def create_or_update(list_id=None, board_id=None):
 	}
 
 	if request.method == 'POST':
+		sort = 0 if sort is None else sort
 		cursor = db.execute(
 			'INSERT INTO list (name, sort, board_id) VALUES (?, ?, ?)',
 			(name, sort, board_id)
 		)
 		myresponse.update(id=cursor.lastrowid)
 	elif request.method == 'PUT':
-		if list_id is None: 
-			abort(404)
-		sort = db.execute('SELECT sort FROM list WHERE id = ?', (list_id,)).fetchone()['sort']
+		if not is_author(list_id, g.user['id']):
+			abort(403)
+		name
+		if sort is None:
+			sort = db.execute('SELECT sort FROM list WHERE id = ?', (list_id,)).fetchone()['sort']
 		db.execute(
 			'UPDATE list SET name = ?, sort = ? WHERE id = ?',
 			(name, sort, list_id)
@@ -57,17 +62,7 @@ def create_or_update(list_id=None, board_id=None):
 def delete(list_id):
 	db = get_db()
 
-	list_obj = db.execute(
-		'SELECT * FROM list WHERE id = ?',
-		(list_id,)
-	).fetchone()
-
-	board = db.execute(
-		'SELECT * FROM board WHERE id = ?',
-		(list_obj['board_id'],)
-	).fetchone()
-
-	if board['user_id'] != g.user['id']	:
+	if not is_author(list_id, g.user['id']):
 		abort(403)
 
 	db.execute(
@@ -85,8 +80,10 @@ def delete(list_id):
 @valid_token_only
 def index(board_id):
 	db = get_db()
-	lists = db.execute('SELECT * FROM list WHERE board_id = ?', (board_id,)).fetchall()
+	if not board.is_author(board_id, g.user['id']):
+		abort(403)
 	
+	lists = get_by_board(board_id)
 	# shit code
 	data = []
 	for list_obj in lists:
@@ -100,3 +97,15 @@ def index(board_id):
 		'result': 1,
 		'lists': data	
 	})
+
+def get_by_board(board_id):
+	db = get_db()
+	return db.execute('SELECT * FROM list WHERE board_id = ?', (board_id,)).fetchall()
+
+def get_by_id(list_id):
+	db = get_db()
+	return db.execute('SELECT * FROM list l JOIN board b ON l.board_id == b.id AND l.id = ?', (list_id, )).fetchone()
+
+def is_author(list_id, user_id):
+	mylist = get_by_id(list_id)
+	return mylist['user_id'] == user_id
