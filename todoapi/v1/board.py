@@ -33,20 +33,12 @@ def create_or_update(board_id=None):
 	}
 
 	if request.method == 'POST':
-		cursor = db.execute(
-			'INSERT INTO board (name, color, user_id) VALUES (?, ?, ?)',
-			(name, color, g.user['id'])
-		)
-		myresponse.update(id=cursor.lastrowid)
+		added_id = add_board(name, color)
+		myresponse.update(id=added_id)
 	elif request.method == 'PUT':
-		if board_id is None: 
-			abort(404)
 		if color is None:
-			color = db.execute('SELECT color FROM board WHERE id = ?', (board_id,)).fetchone()['color']
-		db.execute(
-			'UPDATE board SET name = ?, color = ? WHERE id = ?',
-			(name, color, board_id)
-		)
+			color = get_by_id(board_id)['color']
+		update(board_id, name, color)
 		myresponse.update(board = {
 			'name': name,
 			'color': color	
@@ -62,12 +54,7 @@ def create_or_update(board_id=None):
 def delete(board_id):
 	db = get_db()
 
-	board = db.execute(
-		'SELECT * FROM board WHERE id = ?',
-		(board_id,)
-	).fetchone()
-
-	if board['user_id'] != g.user['id']	:
+	if not is_author(board_id, g.user['id']):
 		abort(403)
 
 	db.execute(
@@ -85,7 +72,7 @@ def delete(board_id):
 @valid_token_only
 def index():
 	db = get_db()
-	boards = db.execute('SELECT * FROM board WHERE user_id = ?', (g.user['id'],)).fetchall()
+	boards = get_by_user(g.user['id'])
 	
 	# shit code
 	data = []
@@ -100,3 +87,30 @@ def index():
 		'result': 1,
 		'boards': data	
 	})
+
+def get_by_id(board_id):
+	db = get_db()
+	return db.execute('SELECT * FROM board WHERE id = ?', [board_id]).fetchone()
+
+def is_author(board_id, user_id):
+	board = Board.get_by_id(board_id)
+	return user_id == board['user_id']
+
+def get_by_user(user_id):
+	db = get_db()
+	return db.execute('SELECT * FROM board WHERE user_id = ?', (user_id,)).fetchall()
+
+def add_board(name, color):
+	db = get_db()
+	cursor = db.execute(
+		'INSERT INTO board (name, color, user_id) VALUES (?, ?, ?)',
+		(name, color, g.user['id'])
+	)
+	db.commit()
+	return cursor.lastrowid
+
+def update(board_id, name, color)
+	db.execute(
+		'UPDATE board SET name = ?, color = ? WHERE id = ?',
+		(name, color, board_id)
+	)
