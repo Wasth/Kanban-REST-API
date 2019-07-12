@@ -87,3 +87,13 @@ def validate_list(name, sort):
 			'sort': 'Sort must be integer'
 		}
 	return error
+
+def validate_task(name):
+	error = None
+
+	if name is None:
+		error = {
+			'name': 'Name cannot be empty'
+		}
+
+	return error
