@@ -93,7 +93,7 @@ def get_by_id(board_id):
 	return db.execute('SELECT * FROM board WHERE id = ?', [board_id]).fetchone()
 
 def is_author(board_id, user_id):
-	board = Board.get_by_id(board_id)
+	board = get_by_id(board_id)
 	return user_id == board['user_id']
 
 def get_by_user(user_id):
@@ -109,7 +109,8 @@ def add_board(name, color):
 	db.commit()
 	return cursor.lastrowid
 
-def update(board_id, name, color)
+def update(board_id, name, color):
+	db = get_db()
 	db.execute(
 		'UPDATE board SET name = ?, color = ? WHERE id = ?',
 		(name, color, board_id)
