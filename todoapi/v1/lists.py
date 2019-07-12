@@ -47,7 +47,7 @@ def create_or_update(list_id=None, board_id=None):
 			'UPDATE list SET name = ?, sort = ? WHERE id = ?',
 			(name, sort, list_id)
 		)
-		myresponse.update(board = {
+		myresponse.update(list = {
 			'name': name,
 			'sort': sort	
 		})
