@@ -87,3 +87,10 @@ def valid_token_only(view):
 
 		abort(403)
 	return wrapped_view
+
+@bp.after_request
+def set_content_types(response):
+	response.mimetype = 'application/json'
+	response.headers["Content-Type"] = "applicatin/json; charset=utf-8"
+	response.headers["Access-Control-Allow-Origin"] = "*"
+	return response
