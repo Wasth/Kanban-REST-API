@@ -121,3 +121,12 @@ def get_by_id(task_id):
 def is_author(task_id, user_id):
 	task = get_by_id(task_id)
 	return task['user_id'] == g.user['id']
+
+
+@bp.after_request
+def set_content_types(response):
+	response.mimetype = 'application/json'
+	response.headers.add('Access-Control-Allow-Origin', '*')
+	response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, token')
+	response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+	return response

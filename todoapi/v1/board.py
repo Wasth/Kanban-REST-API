@@ -5,12 +5,23 @@ from todoapi.db import get_db
 from todoapi.utils import validate_board
 
 from flask import (
-	request, g, Blueprint, abort
+	request, g, Blueprint, abort, make_response
 )
 
 
 bp = Blueprint('board', __name__, url_prefix='/v1/board')
 
+# @bp.route('/', methods=('OPTIONS',))
+# @bp.route('/<int:nomatter>', methods=('OPTIONS',))
+# def options(nomatter=None):
+# 	response = make_response()
+
+# 	response.mimetype = 'application/json'
+# 	response.headers.add('Access-Control-Allow-Origin', '*')
+# 	response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,token')
+# 	response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+
+# 	return response
 
 @bp.route('/<int:board_id>', methods=('PUT',))
 @bp.route('/', methods=('POST',))
@@ -21,6 +32,9 @@ def create_or_update(board_id=None):
 	name = request.form.get('name', None)
 	color = request.form.get('color', None)
 	error = validate_board(name, color)
+
+	print(request.form['name'])
+	print(color)
 
 	if error:
 		return json.dumps({
@@ -68,7 +82,7 @@ def delete(board_id):
 		'id': board_id
 	})
 
-@bp.route('/')
+@bp.route('/', methods=('GET',))
 @valid_token_only
 def index():
 	db = get_db()
@@ -115,3 +129,12 @@ def update(board_id, name, color):
 		'UPDATE board SET name = ?, color = ? WHERE id = ?',
 		(name, color, board_id)
 	)
+
+
+@bp.after_request
+def set_content_types(response):
+	response.mimetype = 'application/json'
+	response.headers.add('Access-Control-Allow-Origin', '*')
+	response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, token')
+	response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+	return response
