@@ -1,7 +1,6 @@
-import os 
-
 from flask import Flask
 from . import db
+
 
 def create_app():
 	""" Creating flask app and return it """
@@ -11,7 +10,7 @@ def create_app():
 	# just for fun
 	@app.route('/')
 	def index():
-		return '<h2>This is not site</h2><h1>However, hello world!</h1>';
+		return '<h2>This is not site</h2><h1>However, hello world!</h1>'
 
 	db.register_init_db(app)
 
@@ -20,6 +19,5 @@ def create_app():
 	app.register_blueprint(board.bp)
 	app.register_blueprint(lists.bp)
 	app.register_blueprint(task.bp)
-
 
 	return app

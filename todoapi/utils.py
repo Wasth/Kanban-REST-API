@@ -1,14 +1,15 @@
 from todoapi.db import get_db
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import check_password_hash
+
 
 def validate_signin(username, password):
 	error = None
-	
-	if not username:		
+
+	if not username:
 		error = {
 			'username': 'Username cannot be blank'
 		}
-	elif not password: 
+	elif not password:
 		error = {
 			'password': 'Password cannot be blank'
 		}
@@ -24,6 +25,7 @@ def validate_signin(username, password):
 				'password': 'Incorrect login or password'
 			}
 	return error
+
 
 def validate_signup(username, password, repeated_password):
 	error = None
@@ -56,11 +58,10 @@ def validate_signup(username, password, repeated_password):
 		db = get_db()
 		if db.execute(
 			'SELECT * FROM user WHERE username = ?', (username,)
-			).fetchone(): 
+			).fetchone():
 			error = {
 				'username': 'Username is already taken'
 			}
-	
 
 	return error
 
@@ -75,6 +76,7 @@ def validate_board(name, color):
 
 	return error
 
+
 def validate_list(name, sort):
 	error = None
 
@@ -87,6 +89,7 @@ def validate_list(name, sort):
 			'sort': 'Sort must be integer'
 		}
 	return error
+
 
 def validate_task(name):
 	error = None

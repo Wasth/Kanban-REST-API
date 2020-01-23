@@ -6,9 +6,10 @@ from todoapi.utils import validate_list
 
 from todoapi.v1 import board
 
-from flask import Blueprint, g, request, abort 
+from flask import Blueprint, g, request, abort
 
 bp = Blueprint('list', __name__, url_prefix='/v1/list')
+
 
 @bp.route('/<int:list_id>', methods=('PUT',))
 @bp.route('/<int:board_id>', methods=('POST',))
@@ -23,7 +24,7 @@ def create_or_update(list_id=None, board_id=None):
 	if error:
 		return json.dumps({
 			'result': 0,
-			'error': error	
+			'error': error
 		})
 
 	myresponse = {
@@ -46,9 +47,9 @@ def create_or_update(list_id=None, board_id=None):
 			'UPDATE list SET name = ?, sort = ? WHERE id = ?',
 			(name, sort, list_id)
 		)
-		myresponse.update(list = {
+		myresponse.update(list={
 			'name': name,
-			'sort': sort	
+			'sort': sort
 		})
 
 	db.commit()
@@ -75,35 +76,38 @@ def delete(list_id):
 		'id': list_id
 	})
 
+
 @bp.route('/<int:board_id>')
 @valid_token_only
 def index(board_id):
-	db = get_db()
 	if not board.is_author(board_id, g.user['id']):
 		abort(403)
-	
+
 	lists = get_by_board(board_id)
 	# shit code
 	data = []
 	for list_obj in lists:
 		data.append({
-			'id': list_obj['id'],	
-			'name': list_obj['name'],	
-			'sort': list_obj['sort'],	
+			'id': list_obj['id'],
+			'name': list_obj['name'],
+			'sort': list_obj['sort'],
 		})
 
 	return json.dumps({
 		'result': 1,
-		'lists': data	
+		'lists': data
 	})
+
 
 def get_by_board(board_id):
 	db = get_db()
-	return db.execute('SELECT * FROM list WHERE board_id = ?', (board_id,)).fetchall()
+	return db.execute('SELECT * FROM list WHERE board_id = ? ORDER BY sort', (board_id,)).fetchall()
+
 
 def get_by_id(list_id):
 	db = get_db()
 	return db.execute('SELECT * FROM list l JOIN board b ON l.board_id == b.id AND l.id = ?', (list_id, )).fetchone()
+
 
 def is_author(list_id, user_id):
 	mylist = get_by_id(list_id)

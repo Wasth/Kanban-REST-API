@@ -5,7 +5,7 @@ from todoapi.db import get_db
 from todoapi.utils import validate_board
 
 from flask import (
-	request, g, Blueprint, abort, make_response
+	request, g, Blueprint, abort
 )
 
 
@@ -23,6 +23,7 @@ bp = Blueprint('board', __name__, url_prefix='/v1/board')
 
 # 	return response
 
+
 @bp.route('/<int:board_id>', methods=('PUT',))
 @bp.route('/', methods=('POST',))
 @valid_token_only
@@ -39,7 +40,7 @@ def create_or_update(board_id=None):
 	if error:
 		return json.dumps({
 			'result': 0,
-			'error': error	
+			'error': error
 		})
 
 	myresponse = {
@@ -53,9 +54,9 @@ def create_or_update(board_id=None):
 		if color is None:
 			color = get_by_id(board_id)['color']
 		update(board_id, name, color)
-		myresponse.update(board = {
+		myresponse.update(board={
 			'name': name,
-			'color': color	
+			'color': color
 		})
 
 	db.commit()
@@ -82,37 +83,41 @@ def delete(board_id):
 		'id': board_id
 	})
 
+
 @bp.route('/', methods=('GET',))
 @valid_token_only
 def index():
-	db = get_db()
 	boards = get_by_user(g.user['id'])
-	
+
 	# shit code
 	data = []
 	for board in boards:
 		data.append({
-			'id': board['id'],	
-			'name': board['name'],	
-			'color': board['color'],	
+			'id': board['id'],
+			'name': board['name'],
+			'color': board['color'],
 		})
 
 	return json.dumps({
 		'result': 1,
-		'boards': data	
+		'boards': data
 	})
+
 
 def get_by_id(board_id):
 	db = get_db()
 	return db.execute('SELECT * FROM board WHERE id = ?', [board_id]).fetchone()
 
+
 def is_author(board_id, user_id):
 	board = get_by_id(board_id)
 	return user_id == board['user_id']
 
+
 def get_by_user(user_id):
 	db = get_db()
 	return db.execute('SELECT * FROM board WHERE user_id = ?', (user_id,)).fetchall()
+
 
 def add_board(name, color):
 	db = get_db()
@@ -122,6 +127,7 @@ def add_board(name, color):
 	)
 	db.commit()
 	return cursor.lastrowid
+
 
 def update(board_id, name, color):
 	db = get_db()

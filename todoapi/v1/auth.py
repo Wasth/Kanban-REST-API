@@ -1,4 +1,6 @@
-import json, uuid, functools
+import json
+import uuid
+import functools
 
 from todoapi.db import get_db
 from todoapi.utils import validate_signin, validate_signup
@@ -11,6 +13,7 @@ from werkzeug.security import generate_password_hash
 
 
 bp = Blueprint('auth', __name__, url_prefix='/v1/auth')
+
 
 # view for login(sign in and so on)
 @bp.route('/signin', methods=('POST',))
@@ -26,10 +29,10 @@ def signin():
 	if error:
 		return json.dumps({
 			'result': 0,
-			'error': error	
+			'error': error
 		})
 
-	# if no errors, generate token, set it in DB and return it 
+	# if no errors, generate token, set it in DB and return it
 	user = db.execute(
 			'SELECT id FROM user WHERE username = ?',
 			(username,)
@@ -45,6 +48,7 @@ def signin():
 		'token': token
 	})
 
+
 # view for register(sign up, create account and so on)
 @bp.route('/signup', methods=('POST',))
 def singup():
@@ -58,7 +62,7 @@ def singup():
 	if error:
 		return json.dumps({
 			'result': 0,
-			'error': error	
+			'error': error
 		})
 
 	db.execute(
@@ -70,11 +74,12 @@ def singup():
 		'result': 1,
 	})
 
+
 # decorator for checking if there's token and if it's valid. then it write user to "g"
 def valid_token_only(view):
 	@functools.wraps(view)
 	def wrapped_view(**kwargs):
-		token = request.headers.get('token', None)	
+		token = request.headers.get('token', None)
 		if token:
 			db = get_db()
 			user = db.execute(
@@ -87,6 +92,7 @@ def valid_token_only(view):
 
 		abort(403)
 	return wrapped_view
+
 
 @bp.after_request
 def set_content_types(response):
