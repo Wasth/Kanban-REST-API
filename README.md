@@ -1,5 +1,5 @@
 # Kanban REST API 
-###### Almost REST. And pleace don't pay attention on name.
+###### Almost REST. And, please, don't pay attention on name.
 
 ### Installation
 - #### Install and activate your virtual enviroment(optional)
@@ -9,7 +9,7 @@
     Windows
         `cd path/to/project`
         `set FLASK_APP=todoapi`
-- #### Init DB(you can use this for cleaning DB)
+- #### Init DB(you can use this to clear DB)
     `flask init-db`
 - #### Run App
     `flask run`
