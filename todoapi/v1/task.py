@@ -9,6 +9,38 @@ from flask import Blueprint, g, request, abort
 bp = Blueprint('task', __name__, url_prefix='/v1/task')
 
 
+@bp.route('/<int:task_id>/moveto/<int:destination>', methods=('PUT',))
+@valid_token_only
+def reorder(task_id, destination):
+	if not is_author(task_id, g.user['id']):
+			abort(403)
+
+	source = get_by_id(task_id)['sort']
+
+	db = get_db()
+
+	if source > destination:
+		db.execute(
+			'UPDATE task SET sort = sort + 1 WHERE sort >= ? AND sort < ?',
+			(destination, source)
+		)
+	else:
+		db.execute(
+			'UPDATE task SET sort = sort - 1 WHERE sort > ? AND sort <= ?',
+			(source, destination)
+		)
+
+	db.execute(
+		'UPDATE task SET sort = ? WHERE id = ?',
+		(destination, task_id)
+	)
+	db.commit()
+
+	return json.dumps({
+		'result': 1
+	})
+
+
 @bp.route('/<int:list_id>', methods=('POST',))
 @valid_token_only
 def create(list_id):
