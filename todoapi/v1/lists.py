@@ -11,6 +11,38 @@ from flask import Blueprint, g, request, abort
 bp = Blueprint('list', __name__, url_prefix='/v1/list')
 
 
+@bp.route('/<int:list_id>/moveto/<int:destination>', methods=('PUT',))
+@valid_token_only
+def reorder(list_id, destination):
+	if not is_author(list_id, g.user['id']):
+			abort(403)
+
+	source = get_by_id(list_id)['sort']
+
+	db = get_db()
+
+	if source > destination:
+		db.execute(
+			'UPDATE list SET sort = sort + 1 WHERE sort >= ? AND sort < ?',
+			(destination, source)
+		)
+	else:
+		db.execute(
+			'UPDATE list SET sort = sort - 1 WHERE sort > ? AND sort <= ?',
+			(source, destination)
+		)
+
+	db.execute(
+		'UPDATE list SET sort = ? WHERE id = ?',
+		(destination, list_id)
+	)
+	db.commit()
+
+	return json.dumps({
+		'result': 1
+	})
+
+
 @bp.route('/<int:list_id>', methods=('PUT',))
 @bp.route('/<int:board_id>', methods=('POST',))
 @valid_token_only
@@ -35,7 +67,7 @@ def create_or_update(list_id=None, board_id=None):
 		sort = 0 if sort is None else sort
 		cursor = db.execute(
 			'INSERT INTO list (name, sort, board_id) VALUES (?, ?, ?)',
-			(name, sort, board_id)
+			(name, get_last_sort(board_id)+1, board_id)
 		)
 		myresponse.update(id=cursor.lastrowid)
 	elif request.method == 'PUT':
@@ -97,6 +129,11 @@ def index(board_id):
 		'result': 1,
 		'lists': data
 	})
+
+
+def get_last_sort(board_id):
+	db = get_db()
+	return int(db.execute('SELECT sort FROM list WHERE board_id == ? ORDER BY sort DESC', (board_id, )).fetchone()['sort'])
 
 
 def get_by_board(board_id):
