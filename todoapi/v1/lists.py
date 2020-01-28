@@ -17,7 +17,9 @@ def reorder(list_id, destination):
 	if not is_author(list_id, g.user['id']):
 			abort(403)
 
-	source = get_by_id(list_id)['sort']
+	current_list = get_by_id(list_id)
+
+	source = current_list['sort']
 
 	db = get_db()
 
@@ -38,8 +40,16 @@ def reorder(list_id, destination):
 	)
 	db.commit()
 
+	new_order = db.execute('SELECT id, sort FROM list WHERE board_id = ?', (current_list['board_id'],)).fetchall()
+	data = {}
+	for row in new_order:
+		data.update({
+			row['id']: row['sort']
+		})
+
 	return json.dumps({
-		'result': 1
+		'result': 1,
+		'order': data
 	})
 
 
