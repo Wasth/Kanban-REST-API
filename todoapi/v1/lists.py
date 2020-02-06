@@ -74,12 +74,12 @@ def create_or_update(list_id=None, board_id=None):
 	}
 
 	if request.method == 'POST':
-		sort = 0 if sort is None else sort
+		sort = get_last_sort(board_id) if sort is None else sort
 		cursor = db.execute(
 			'INSERT INTO list (name, sort, board_id) VALUES (?, ?, ?)',
-			(name, get_last_sort(board_id)+1, board_id)
+			(name, sort + 1, board_id)
 		)
-		myresponse.update(id=cursor.lastrowid)
+		myresponse.update(id=cursor.lastrowid, name=name, sort=sort)
 	elif request.method == 'PUT':
 		if not is_author(list_id, g.user['id']):
 			abort(403)
@@ -143,7 +143,8 @@ def index(board_id):
 
 def get_last_sort(board_id):
 	db = get_db()
-	return int(db.execute('SELECT sort FROM list WHERE board_id == ? ORDER BY sort DESC', (board_id, )).fetchone()['sort'])
+	result = db.execute('SELECT sort FROM list WHERE board_id == ? ORDER BY sort DESC', (board_id, )).fetchone()
+	return int(result['sort']) if result else 0
 
 
 def get_by_board(board_id):
