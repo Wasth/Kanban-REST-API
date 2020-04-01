@@ -79,7 +79,7 @@ def create_or_update(list_id=None, board_id=None):
 			'INSERT INTO list (name, sort, board_id) VALUES (?, ?, ?)',
 			(name, sort + 1, board_id)
 		)
-		myresponse.update(id=cursor.lastrowid, name=name, sort=sort)
+		myresponse.update(id=cursor.lastrowid, name=name, sort=sort+1)
 	elif request.method == 'PUT':
 		if not is_author(list_id, g.user['id']):
 			abort(403)
